@@ -1,67 +1,6 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-use App\Product;
-use App\Image;
-use Illuminate\Http\Request;
-Route::get('/', function (Request $request) {
-    $category = \App\Category::all();
-    $product = Product::where(['status' => 'dijual'])->where('stock', '>', '0')->paginate(18);    
-    $filterKeyword = $request->input('search');
-        if($filterKeyword){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->where("title", "LIKE", "%$filterKeyword%")
-            ->paginate(18);
-        }
-    $categorysearch = $request->get('categorysearch');
-    $sorting = $request->get('sorting');
-    if($categorysearch){
-        $product = Product::with('category') ->whereHas('category', function($q) use ($categorysearch) {
-            $q->where('category_id', $categorysearch);
-        })->paginate(18);
-    }elseif($sorting == 'termahal'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->orderBy("price","desc","%$sorting%")->paginate(18);
-        }elseif($sorting == 'termurah'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->orderBy("price","asc","%$sorting%")->paginate(18);
-        }elseif($sorting == 'terbaru'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->orderBy("created_at","desc","%$sorting%")->paginate(18);
-        }elseif($sorting == 'terbaik'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->withCount('review')->orderBy("review_count", "desc","%$sorting%")->paginate(18); 
-        }elseif($sorting == 'terlaris'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->orderBy("sold_out","desc","%$sorting%")->paginate(18);
-        }elseif($sorting == 'look'){
-            $product = Product::where(['status' => 'dijual'])
-            ->where('stock', '>', '0')
-            ->orderBy("look","desc","%$sorting%")->paginate(18);
-        }
-    if($request->ajax()){
-        return view('milna', compact('product','category'))->renderSections()['content'];
-    }else{
-        return view('milna', compact('product','category'));
-    }
-});
-
+Route::get('/', 'Frontend\HomepageController@index');
 Auth::routes(['verify' => true]);
 Route::get('verifikasi', 'UserController@auth')->name('verifikasi');
 Route::get('akun','UserController@ringks')->name('ringksn');
@@ -73,7 +12,7 @@ Route::match(['PUT','PATCH','GET'],'product/show/{id}','ProductController@show')
 Route::get('product/{id}/restore','ProductController@restore')->name('product.restore');
 Route::delete('product/{id}','ProductController@destroy')->name('product.destroy');
 Route::delete('/product/{id}/delete', 'ProductController@deletePermanent')->name('product.delete-permanent');
-Route::get('BarangTidakDijual','ProductController@trash')->name('product.trash');
+Route::get('barangtidakdijual','ProductController@trash')->name('product.trash');
 Route::get('selectall','ProductController@selectAll')->name('product.selectAll');
 Route::get('selectallre','ProductController@selectAllre')->name('product.selectAll.re');
 Route::resource('check', 'CheckoutController');
